@@ -1,0 +1,25 @@
+name: test
+on:
+  push:
+    branches-ignore: ['main']
+
+jobs:
+  test-php:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+
+      - name: install requirements
+        run: |
+          pip install -r requirements.txt
+          pip install -r test-requirements.txt
+
+      - name: test
+        run: |
+          pytest --cov=bmlt_client
