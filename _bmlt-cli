@@ -299,6 +299,7 @@ case $state in
             "authLogout[Revokes a token]" \
             "authRefresh[Revokes and issues a new token]" \
             "authToken[Creates a token]" \
+            "createErrorTest[Tests some errors]" \
             "createFormat[Creates a format]" \
             "createMeeting[Creates a meeting]" \
             "createServiceBody[Creates a service body]" \
@@ -343,6 +344,12 @@ case $state in
         _describe -t actions 'operations' _op_arguments -S '' && ret=0
         ;;
       authToken)
+        local -a _op_arguments
+        _op_arguments=(
+                              )
+        _describe -t actions 'operations' _op_arguments -S '' && ret=0
+        ;;
+      createErrorTest)
         local -a _op_arguments
         _op_arguments=(
                               )

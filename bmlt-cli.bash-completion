@@ -71,6 +71,7 @@ _bmlt-cli()
     operations["authLogout"]=1
     operations["authRefresh"]=1
     operations["authToken"]=1
+    operations["createErrorTest"]=1
     operations["createFormat"]=1
     operations["createMeeting"]=1
     operations["createServiceBody"]=1
@@ -102,6 +103,7 @@ _bmlt-cli()
     operation_parameters["authLogout"]=""
     operation_parameters["authRefresh"]=""
     operation_parameters["authToken"]=""
+    operation_parameters["createErrorTest"]=""
     operation_parameters["createFormat"]=""
     operation_parameters["createMeeting"]=""
     operation_parameters["createServiceBody"]=""

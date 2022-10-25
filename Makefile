@@ -1,10 +1,10 @@
 .PHONY: generate-api-client
 openapi.json:
-	curl http://localhost:8000/main_server/api/v1/openapi.json > openapi.json
+	curl http://localhost:8080/main_server/api/v1/openapi.json > openapi.json
 
-generate: openapi.json
-	docker run --rm -v "$(shell pwd):/local" -w /local openapitools/openapi-generator-cli generate \
-	    -i openapi.json \
+generate:
+	docker run --rm -v "$(shell pwd):/local" -w /local openapitools/openapi-generator-cli:v6.2.0 generate \
+	    -i openapi.yml \
 	    -g bash \
 	    -p scriptName=bmlt-cli \
 	    -p apiKeyAuthEnvironmentVariable=BMLT_APIKEY \

@@ -1,4 +1,3 @@
-.openapi-generator-ignore
 Dockerfile
 README.md
 _bmlt-cli
@@ -6,6 +5,7 @@ bmlt-cli
 bmlt-cli.bash-completion
 docs/AuthenticationError.md
 docs/AuthorizationError.md
+docs/ErrorTest.md
 docs/Format.md
 docs/FormatAllOf.md
 docs/FormatBase.md
@@ -20,6 +20,7 @@ docs/MeetingPartialUpdate.md
 docs/MeetingUpdate.md
 docs/NotFoundError.md
 docs/RootServerApi.md
+docs/ServerError.md
 docs/ServiceBody.md
 docs/ServiceBodyBase.md
 docs/ServiceBodyCreate.md

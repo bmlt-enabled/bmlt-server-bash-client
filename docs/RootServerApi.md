@@ -1,12 +1,13 @@
 # RootServerApi
 
-All URIs are relative to */main_server*
+All URIs are relative to */r*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**authLogout**](RootServerApi.md#authLogout) | **POST** /api/v1/auth/logout | Revokes a token
 [**authRefresh**](RootServerApi.md#authRefresh) | **POST** /api/v1/auth/refresh | Revokes and issues a new token
 [**authToken**](RootServerApi.md#authToken) | **POST** /api/v1/auth/token | Creates a token
+[**createErrorTest**](RootServerApi.md#createErrorTest) | **POST** /api/v1/errortest | Tests some errors
 [**createFormat**](RootServerApi.md#createFormat) | **POST** /api/v1/formats | Creates a format
 [**createMeeting**](RootServerApi.md#createMeeting) | **POST** /api/v1/meetings | Creates a meeting
 [**createServiceBody**](RootServerApi.md#createServiceBody) | **POST** /api/v1/servicebodies | Creates a service body
@@ -56,7 +57,7 @@ This endpoint does not need any parameter.
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -88,7 +89,7 @@ This endpoint does not need any parameter.
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -133,6 +134,41 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 
+## createErrorTest
+
+Tests some errors
+
+Tests some errors.
+
+### Example
+
+```bash
+bmlt-cli createErrorTest
+```
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **errorTest** | [**ErrorTest**](ErrorTest.md) | Pass in error test object. |
+
+### Return type
+
+[**ErrorTest**](ErrorTest.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
 ## createFormat
 
 Creates a format
@@ -158,7 +194,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -193,7 +229,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -228,7 +264,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -263,7 +299,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -298,7 +334,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -333,7 +369,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -368,7 +404,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -403,7 +439,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -438,7 +474,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -470,7 +506,7 @@ This endpoint does not need any parameter.
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -505,7 +541,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -543,7 +579,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -575,7 +611,7 @@ This endpoint does not need any parameter.
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -610,7 +646,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -645,7 +681,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -677,7 +713,7 @@ This endpoint does not need any parameter.
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -713,7 +749,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -749,7 +785,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -785,7 +821,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -821,7 +857,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -857,7 +893,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -893,7 +929,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -929,7 +965,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -965,7 +1001,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+[bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 

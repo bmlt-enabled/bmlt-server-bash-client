@@ -99,13 +99,14 @@ In Zsh, the generated `_bmlt-cli` Zsh completion file must be copied to one of t
 
 ## Documentation for API Endpoints
 
-All URIs are relative to */main_server*
+All URIs are relative to */*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *RootServerApi* | [**authLogout**](docs/RootServerApi.md#authlogout) | **POST** /api/v1/auth/logout | Revokes a token
 *RootServerApi* | [**authRefresh**](docs/RootServerApi.md#authrefresh) | **POST** /api/v1/auth/refresh | Revokes and issues a new token
 *RootServerApi* | [**authToken**](docs/RootServerApi.md#authtoken) | **POST** /api/v1/auth/token | Creates a token
+*RootServerApi* | [**createErrorTest**](docs/RootServerApi.md#createerrortest) | **POST** /api/v1/errortest | Tests some errors
 *RootServerApi* | [**createFormat**](docs/RootServerApi.md#createformat) | **POST** /api/v1/formats | Creates a format
 *RootServerApi* | [**createMeeting**](docs/RootServerApi.md#createmeeting) | **POST** /api/v1/meetings | Creates a meeting
 *RootServerApi* | [**createServiceBody**](docs/RootServerApi.md#createservicebody) | **POST** /api/v1/servicebodies | Creates a service body
@@ -136,6 +137,7 @@ Class | Method | HTTP request | Description
 
  - [AuthenticationError](docs/AuthenticationError.md)
  - [AuthorizationError](docs/AuthorizationError.md)
+ - [ErrorTest](docs/ErrorTest.md)
  - [Format](docs/Format.md)
  - [FormatAllOf](docs/FormatAllOf.md)
  - [FormatBase](docs/FormatBase.md)
@@ -149,6 +151,7 @@ Class | Method | HTTP request | Description
  - [MeetingPartialUpdate](docs/MeetingPartialUpdate.md)
  - [MeetingUpdate](docs/MeetingUpdate.md)
  - [NotFoundError](docs/NotFoundError.md)
+ - [ServerError](docs/ServerError.md)
  - [ServiceBody](docs/ServiceBody.md)
  - [ServiceBodyBase](docs/ServiceBodyBase.md)
  - [ServiceBodyCreate](docs/ServiceBodyCreate.md)
@@ -168,11 +171,10 @@ Class | Method | HTTP request | Description
 ## Documentation For Authorization
 
 
-## bmltToken
+## bearerAuth
 
 
-- **Type**: OAuth
-- **Flow**: password
-- **Token URL**: api/v1/auth/token
-- **Scopes**: N/A
+- **Type**: API key
+- **API key parameter name**: Authorization: Bearer
+- **Location**: HTTP header
 
