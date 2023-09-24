@@ -312,6 +312,8 @@ case $state in
             "getFormats[Retrieves formats]" \
             "getMeeting[Retrieves a meeting]" \
             "getMeetings[Retrieves meetings]" \
+            "getRootServer[Retrieves a root server]" \
+            "getRootServers[Retrieves root servers]" \
             "getServiceBodies[Retrieves service bodies]" \
             "getServiceBody[Retrieves a service body]" \
             "getUser[Retrieves a single user]" \
@@ -435,6 +437,19 @@ case $state in
 "serviceBodyIds=:[QUERY] comma delimited service body ids"
 "searchString=:[QUERY] string"
           )
+        _describe -t actions 'operations' _op_arguments -S '' && ret=0
+        ;;
+      getRootServer)
+        local -a _op_arguments
+        _op_arguments=(
+          "rootServerId=:[PATH] ID of root server"
+                    )
+        _describe -t actions 'operations' _op_arguments -S '' && ret=0
+        ;;
+      getRootServers)
+        local -a _op_arguments
+        _op_arguments=(
+                              )
         _describe -t actions 'operations' _op_arguments -S '' && ret=0
         ;;
       getServiceBodies)

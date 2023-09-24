@@ -99,7 +99,7 @@ In Zsh, the generated `_bmlt-cli` Zsh completion file must be copied to one of t
 
 ## Documentation for API Endpoints
 
-All URIs are relative to */*
+All URIs are relative to */main_server*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
@@ -119,6 +119,8 @@ Class | Method | HTTP request | Description
 *RootServerApi* | [**getFormats**](docs/RootServerApi.md#getformats) | **GET** /api/v1/formats | Retrieves formats
 *RootServerApi* | [**getMeeting**](docs/RootServerApi.md#getmeeting) | **GET** /api/v1/meetings/{meetingId} | Retrieves a meeting
 *RootServerApi* | [**getMeetings**](docs/RootServerApi.md#getmeetings) | **GET** /api/v1/meetings | Retrieves meetings
+*RootServerApi* | [**getRootServer**](docs/RootServerApi.md#getrootserver) | **GET** /api/v1/rootservers/{rootServerId} | Retrieves a root server
+*RootServerApi* | [**getRootServers**](docs/RootServerApi.md#getrootservers) | **GET** /api/v1/rootservers | Retrieves root servers
 *RootServerApi* | [**getServiceBodies**](docs/RootServerApi.md#getservicebodies) | **GET** /api/v1/servicebodies | Retrieves service bodies
 *RootServerApi* | [**getServiceBody**](docs/RootServerApi.md#getservicebody) | **GET** /api/v1/servicebodies/{serviceBodyId} | Retrieves a service body
 *RootServerApi* | [**getUser**](docs/RootServerApi.md#getuser) | **GET** /api/v1/users/{userId} | Retrieves a single user
@@ -137,9 +139,9 @@ Class | Method | HTTP request | Description
 
  - [AuthenticationError](docs/AuthenticationError.md)
  - [AuthorizationError](docs/AuthorizationError.md)
+ - [ConflictError](docs/ConflictError.md)
  - [ErrorTest](docs/ErrorTest.md)
  - [Format](docs/Format.md)
- - [FormatAllOf](docs/FormatAllOf.md)
  - [FormatBase](docs/FormatBase.md)
  - [FormatCreate](docs/FormatCreate.md)
  - [FormatPartialUpdate](docs/FormatPartialUpdate.md)
@@ -151,6 +153,11 @@ Class | Method | HTTP request | Description
  - [MeetingPartialUpdate](docs/MeetingPartialUpdate.md)
  - [MeetingUpdate](docs/MeetingUpdate.md)
  - [NotFoundError](docs/NotFoundError.md)
+ - [RootServer](docs/RootServer.md)
+ - [RootServerBase](docs/RootServerBase.md)
+ - [RootServerBaseStatistics](docs/RootServerBaseStatistics.md)
+ - [RootServerBaseStatisticsMeetings](docs/RootServerBaseStatisticsMeetings.md)
+ - [RootServerBaseStatisticsServiceBodies](docs/RootServerBaseStatisticsServiceBodies.md)
  - [ServerError](docs/ServerError.md)
  - [ServiceBody](docs/ServiceBody.md)
  - [ServiceBodyBase](docs/ServiceBodyBase.md)
@@ -162,7 +169,6 @@ Class | Method | HTTP request | Description
  - [User](docs/User.md)
  - [UserBase](docs/UserBase.md)
  - [UserCreate](docs/UserCreate.md)
- - [UserCreateAllOf](docs/UserCreateAllOf.md)
  - [UserPartialUpdate](docs/UserPartialUpdate.md)
  - [UserUpdate](docs/UserUpdate.md)
  - [ValidationError](docs/ValidationError.md)
@@ -171,10 +177,11 @@ Class | Method | HTTP request | Description
 ## Documentation For Authorization
 
 
-## bearerAuth
+## bmltToken
 
 
-- **Type**: API key
-- **API key parameter name**: Authorization: Bearer
-- **Location**: HTTP header
+- **Type**: OAuth
+- **Flow**: password
+- **Token URL**: api/v1/auth/token
+- **Scopes**: N/A
 

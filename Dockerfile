@@ -1,6 +1,6 @@
 FROM alpine:3.12.0
 
-RUN apk add --update --no-cache curl ca-certificates bash bash-completion zsh curl git vim ncurses util-linux jq
+RUN apk add --update --no-cache curl ca-certificates bash bash-completion zsh curl git vim ncurses util-linux
 
 ADD bmlt-cli /usr/bin/bmlt-cli
 ADD _bmlt-cli /usr/local/share/zsh/site-functions/_bmlt-cli
@@ -36,8 +36,7 @@ line REST client for $(tput setaf 6)BMLT$(tput sgr0).\n\
 \n\
 For convenience, you can export the following environment variables:\n\
 \n\
-$(tput setaf 3)BMLT_HOST$(tput sgr0) - server URL, e.g. https://latest.aws.bmlt.app/main_server\n\
-$(tput setaf 3)BMLT_APIKEY$(tput sgr0) - access token, e.g. "ASDASHJDG63456asdASSD"\n\
+$(tput setaf 3)BMLT_HOST$(tput sgr0) - server URL, e.g. https://example.com:8080\n\
 \n\
 $(tput setaf 7)Basic usage:$(tput sgr0)\n\
 \n\

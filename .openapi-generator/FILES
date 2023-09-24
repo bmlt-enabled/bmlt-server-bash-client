@@ -5,9 +5,9 @@ bmlt-cli
 bmlt-cli.bash-completion
 docs/AuthenticationError.md
 docs/AuthorizationError.md
+docs/ConflictError.md
 docs/ErrorTest.md
 docs/Format.md
-docs/FormatAllOf.md
 docs/FormatBase.md
 docs/FormatCreate.md
 docs/FormatPartialUpdate.md
@@ -19,7 +19,12 @@ docs/MeetingCreate.md
 docs/MeetingPartialUpdate.md
 docs/MeetingUpdate.md
 docs/NotFoundError.md
+docs/RootServer.md
 docs/RootServerApi.md
+docs/RootServerBase.md
+docs/RootServerBaseStatistics.md
+docs/RootServerBaseStatisticsMeetings.md
+docs/RootServerBaseStatisticsServiceBodies.md
 docs/ServerError.md
 docs/ServiceBody.md
 docs/ServiceBodyBase.md
@@ -31,7 +36,6 @@ docs/TokenCredentials.md
 docs/User.md
 docs/UserBase.md
 docs/UserCreate.md
-docs/UserCreateAllOf.md
 docs/UserPartialUpdate.md
 docs/UserUpdate.md
 docs/ValidationError.md

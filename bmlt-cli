@@ -111,6 +111,7 @@ operation_parameters_minimum_occurrences["getMeetings:::meetingIds"]=0
 operation_parameters_minimum_occurrences["getMeetings:::days"]=0
 operation_parameters_minimum_occurrences["getMeetings:::serviceBodyIds"]=0
 operation_parameters_minimum_occurrences["getMeetings:::searchString"]=0
+operation_parameters_minimum_occurrences["getRootServer:::rootServerId"]=1
 operation_parameters_minimum_occurrences["getServiceBody:::serviceBodyId"]=1
 operation_parameters_minimum_occurrences["getUser:::userId"]=1
 operation_parameters_minimum_occurrences["partialUpdateUser:::userId"]=1
@@ -153,6 +154,7 @@ operation_parameters_maximum_occurrences["getMeetings:::meetingIds"]=0
 operation_parameters_maximum_occurrences["getMeetings:::days"]=0
 operation_parameters_maximum_occurrences["getMeetings:::serviceBodyIds"]=0
 operation_parameters_maximum_occurrences["getMeetings:::searchString"]=0
+operation_parameters_maximum_occurrences["getRootServer:::rootServerId"]=0
 operation_parameters_maximum_occurrences["getServiceBody:::serviceBodyId"]=0
 operation_parameters_maximum_occurrences["getUser:::userId"]=0
 operation_parameters_maximum_occurrences["partialUpdateUser:::userId"]=0
@@ -192,6 +194,7 @@ operation_parameters_collection_type["getMeetings:::meetingIds"]=""
 operation_parameters_collection_type["getMeetings:::days"]=""
 operation_parameters_collection_type["getMeetings:::serviceBodyIds"]=""
 operation_parameters_collection_type["getMeetings:::searchString"]=""
+operation_parameters_collection_type["getRootServer:::rootServerId"]=""
 operation_parameters_collection_type["getServiceBody:::serviceBodyId"]=""
 operation_parameters_collection_type["getUser:::userId"]=""
 operation_parameters_collection_type["partialUpdateUser:::userId"]=""
@@ -230,9 +233,6 @@ host="$BMLT_HOST"
 # The user credentials for basic authentication
 basic_auth_credential="$BMLT_CREDS"
 
-##
-# The user API key
-apikey_auth_credential="$BMLT_APIKEY"
 
 ##
 # If true, the script will only output the actual cURL command that would be
@@ -335,23 +335,10 @@ lookup_mime_type() {
 ##############################################################################
 header_arguments_to_curl() {
     local headers_curl=""
-    local api_key_header=""
-    local api_key_header_in_cli=""
-    api_key_header="Authorization: Bearer "
 
     for key in "${!header_arguments[@]}"; do
         headers_curl+="-H \"${key}: ${header_arguments[${key}]}\" "
-        if [[ "${key}XX" == "${api_key_header}XX" ]]; then
-            api_key_header_in_cli="YES"
-        fi
     done
-    #
-    # If the api_key was not provided in the header, try one from the
-    # environment variable
-    #
-    if [[ -z $api_key_header_in_cli && -n $apikey_auth_credential ]]; then
-        headers_curl+="-H \"${api_key_header} ${apikey_auth_credential}\""
-    fi
     headers_curl+=" "
 
     echo "${headers_curl}"
@@ -608,8 +595,10 @@ ${BOLD}${WHITE}Usage${OFF}
 EOF
     echo -e "${BOLD}${WHITE}Authentication methods${OFF}"
     echo -e ""
-    echo -e "  - ${BLUE}Api-key${OFF} - add '${RED}Authorization: Bearer:<api-key>${OFF}' after ${YELLOW}<operation>${OFF}"
-    echo -e "              or export ${RED}BMLT_APIKEY='<api-key>'${OFF}"
+    echo -e "  - ${MAGENTA}OAuth2 (flow: password)${OFF}"
+    echo -e "      Token URL: "
+    echo -e "        * api/v1/auth/token"
+    echo -e "      Scopes:"
     echo ""
     echo -e "${BOLD}${WHITE}Operations (grouped by tags)${OFF}"
     echo ""
@@ -631,6 +620,8 @@ read -r -d '' ops <<EOF
   ${CYAN}getFormats${OFF};Retrieves formats (AUTH)
   ${CYAN}getMeeting${OFF};Retrieves a meeting (AUTH)
   ${CYAN}getMeetings${OFF};Retrieves meetings (AUTH)
+  ${CYAN}getRootServer${OFF};Retrieves a root server
+  ${CYAN}getRootServers${OFF};Retrieves root servers (AUTH)
   ${CYAN}getServiceBodies${OFF};Retrieves service bodies (AUTH)
   ${CYAN}getServiceBody${OFF};Retrieves a service body (AUTH)
   ${CYAN}getUser${OFF};Retrieves a single user (AUTH)
@@ -651,7 +642,7 @@ echo "  $ops" | column -t -s ';'
     echo -e "  -V,--version\\t\\t\\t\\tPrint API version"
     echo -e "  --about\\t\\t\\t\\tPrint the information about service"
     echo -e "  --host ${CYAN}<url>${OFF}\\t\\t\\t\\tSpecify the host URL "
-echo -e "              \\t\\t\\t\\t(e.g. 'https://latest.aws.bmlt.app')"
+echo -e "              \\t\\t\\t\\t(e.g. 'https://localhost')"
 
     echo -e "  --force\\t\\t\\t\\tForce command invocation in spite of missing"
     echo -e "         \\t\\t\\t\\trequired parameters or wrong content type"
@@ -703,7 +694,7 @@ print_version() {
 ##############################################################################
 print_authLogout_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}authLogout - Revokes a token${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}authLogout - Revokes a token${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Revoke token and logout." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -721,7 +712,7 @@ print_authLogout_help() {
 ##############################################################################
 print_authRefresh_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}authRefresh - Revokes and issues a new token${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}authRefresh - Revokes and issues a new token${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Refresh token." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -748,8 +739,8 @@ print_authToken_help() {
     echo -e ""
     echo ""
     echo -e "${BOLD}${WHITE}Responses${OFF}"
-    code=201
-    echo -e "${result_color_table[${code:0:1}]}  201;Returns when POST is successful.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
+    code=200
+    echo -e "${result_color_table[${code:0:1}]}  200;Returns when POST is successful.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
     code=401
     echo -e "${result_color_table[${code:0:1}]}  401;Returns when credentials are incorrect.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
     code=422
@@ -762,7 +753,7 @@ print_authToken_help() {
 ##############################################################################
 print_createErrorTest_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}createErrorTest - Tests some errors${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}createErrorTest - Tests some errors${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Tests some errors." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -787,7 +778,7 @@ print_createErrorTest_help() {
 ##############################################################################
 print_createFormat_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}createFormat - Creates a format${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}createFormat - Creates a format${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Creates a format." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -814,7 +805,7 @@ print_createFormat_help() {
 ##############################################################################
 print_createMeeting_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}createMeeting - Creates a meeting${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}createMeeting - Creates a meeting${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Creates a meeting." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -841,7 +832,7 @@ print_createMeeting_help() {
 ##############################################################################
 print_createServiceBody_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}createServiceBody - Creates a service body${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}createServiceBody - Creates a service body${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Creates a service body." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -868,7 +859,7 @@ print_createServiceBody_help() {
 ##############################################################################
 print_createUser_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}createUser - Creates a user${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}createUser - Creates a user${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Creates a user." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -895,7 +886,7 @@ print_createUser_help() {
 ##############################################################################
 print_deleteFormat_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}deleteFormat - Deletes a format${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}deleteFormat - Deletes a format${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Deletes a format by id." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -921,7 +912,7 @@ print_deleteFormat_help() {
 ##############################################################################
 print_deleteMeeting_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}deleteMeeting - Deletes a meeting${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}deleteMeeting - Deletes a meeting${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Deletes a meeting by id." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -945,7 +936,7 @@ print_deleteMeeting_help() {
 ##############################################################################
 print_deleteServiceBody_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}deleteServiceBody - Deletes a service body${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}deleteServiceBody - Deletes a service body${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Deletes a service body by id." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -961,6 +952,8 @@ print_deleteServiceBody_help() {
     echo -e "${result_color_table[${code:0:1}]}  403;Returns when user is unauthorized to perform action.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
     code=404
     echo -e "${result_color_table[${code:0:1}]}  404;Returns when no service body exists.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
+    code=409
+    echo -e "${result_color_table[${code:0:1}]}  409;Returns when service body has children.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
 }
 ##############################################################################
 #
@@ -969,7 +962,7 @@ print_deleteServiceBody_help() {
 ##############################################################################
 print_deleteUser_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}deleteUser - Deletes a user${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}deleteUser - Deletes a user${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Deletes a user by id" | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -995,7 +988,7 @@ print_deleteUser_help() {
 ##############################################################################
 print_getFormat_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}getFormat - Retrieves a format${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}getFormat - Retrieves a format${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Retrieve a format" | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -1017,7 +1010,7 @@ print_getFormat_help() {
 ##############################################################################
 print_getFormats_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}getFormats - Retrieves formats${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}getFormats - Retrieves formats${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Retrieve formats" | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -1035,7 +1028,7 @@ print_getFormats_help() {
 ##############################################################################
 print_getMeeting_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}getMeeting - Retrieves a meeting${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}getMeeting - Retrieves a meeting${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Retrieve a meeting." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -1057,7 +1050,7 @@ print_getMeeting_help() {
 ##############################################################################
 print_getMeetings_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}getMeetings - Retrieves meetings${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}getMeetings - Retrieves meetings${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Retrieve meetings for authenticated user." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -1081,12 +1074,50 @@ print_getMeetings_help() {
 }
 ##############################################################################
 #
+# Print help for getRootServer operation
+#
+##############################################################################
+print_getRootServer_help() {
+    echo ""
+    echo -e "${BOLD}${WHITE}getRootServer - Retrieves a root server${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e ""
+    echo -e "Retrieve a single root server id." | paste -sd' ' | fold -sw 80
+    echo -e ""
+    echo -e "${BOLD}${WHITE}Parameters${OFF}"
+    echo -e "  * ${GREEN}rootServerId${OFF} ${BLUE}[integer]${OFF} ${RED}(required)${OFF} ${CYAN}(default: null)${OFF} - ID of root server ${YELLOW}Specify as: rootServerId=value${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo ""
+    echo -e "${BOLD}${WHITE}Responses${OFF}"
+    code=200
+    echo -e "${result_color_table[${code:0:1}]}  200;Successful response.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
+    code=404
+    echo -e "${result_color_table[${code:0:1}]}  404;Returns when no root server exists.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
+}
+##############################################################################
+#
+# Print help for getRootServers operation
+#
+##############################################################################
+print_getRootServers_help() {
+    echo ""
+    echo -e "${BOLD}${WHITE}getRootServers - Retrieves root servers${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e ""
+    echo -e "Retrieve root servers." | paste -sd' ' | fold -sw 80
+    echo -e ""
+    echo ""
+    echo -e "${BOLD}${WHITE}Responses${OFF}"
+    code=200
+    echo -e "${result_color_table[${code:0:1}]}  200;Successful response.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
+    code=404
+    echo -e "${result_color_table[${code:0:1}]}  404;Returns when aggregator mode is disabled.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
+}
+##############################################################################
+#
 # Print help for getServiceBodies operation
 #
 ##############################################################################
 print_getServiceBodies_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}getServiceBodies - Retrieves service bodies${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}getServiceBodies - Retrieves service bodies${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Retrieve service bodies for authenticated user." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -1104,7 +1135,7 @@ print_getServiceBodies_help() {
 ##############################################################################
 print_getServiceBody_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}getServiceBody - Retrieves a service body${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}getServiceBody - Retrieves a service body${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Retrieve a single service body by id." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -1126,7 +1157,7 @@ print_getServiceBody_help() {
 ##############################################################################
 print_getUser_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}getUser - Retrieves a single user${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}getUser - Retrieves a single user${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Retrieve single user." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -1148,7 +1179,7 @@ print_getUser_help() {
 ##############################################################################
 print_getUsers_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}getUsers - Retrieves users${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}getUsers - Retrieves users${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Retrieve users for authenticated user." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -1166,7 +1197,7 @@ print_getUsers_help() {
 ##############################################################################
 print_partialUpdateUser_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}partialUpdateUser - Patches a user${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}partialUpdateUser - Patches a user${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Patches a user by id." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -1194,7 +1225,7 @@ print_partialUpdateUser_help() {
 ##############################################################################
 print_patchFormat_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}patchFormat - Patches a format${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}patchFormat - Patches a format${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Patches a single format by id." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -1222,7 +1253,7 @@ print_patchFormat_help() {
 ##############################################################################
 print_patchMeeting_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}patchMeeting - Patches a meeting${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}patchMeeting - Patches a meeting${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Patches a meeting by id" | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -1250,7 +1281,7 @@ print_patchMeeting_help() {
 ##############################################################################
 print_patchServiceBody_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}patchServiceBody - Patches a service body${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}patchServiceBody - Patches a service body${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Patches a single service body by id." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -1278,7 +1309,7 @@ print_patchServiceBody_help() {
 ##############################################################################
 print_updateFormat_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}updateFormat - Updates a format${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}updateFormat - Updates a format${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Updates a format." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -1306,7 +1337,7 @@ print_updateFormat_help() {
 ##############################################################################
 print_updateMeeting_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}updateMeeting - Updates a meeting${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}updateMeeting - Updates a meeting${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Updates a meeting." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -1334,7 +1365,7 @@ print_updateMeeting_help() {
 ##############################################################################
 print_updateServiceBody_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}updateServiceBody - Updates a Service Body${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}updateServiceBody - Updates a Service Body${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Updates a single service body." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -1362,7 +1393,7 @@ print_updateServiceBody_help() {
 ##############################################################################
 print_updateUser_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}updateUser - Update single user${OFF}${BLUE}(AUTH - HEADER)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}updateUser - Update single user${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Updates a user." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -1399,7 +1430,7 @@ call_authLogout() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/auth/logout" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/auth/logout" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -1435,7 +1466,7 @@ call_authRefresh() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/auth/refresh" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/auth/refresh" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -1471,7 +1502,7 @@ call_authToken() {
     local query_parameter_names=()
     local path
 
-    if ! path=$(build_request_path "/api/v1/auth/token" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/auth/token" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -1549,7 +1580,7 @@ call_createErrorTest() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/errortest" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/errortest" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -1627,7 +1658,7 @@ call_createFormat() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/formats" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/formats" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -1705,7 +1736,7 @@ call_createMeeting() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/meetings" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/meetings" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -1783,7 +1814,7 @@ call_createServiceBody() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/servicebodies" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/servicebodies" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -1861,7 +1892,7 @@ call_createUser() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/users" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/users" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -1939,7 +1970,7 @@ call_deleteFormat() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/formats/{formatId}" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/formats/{formatId}" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -1975,7 +2006,7 @@ call_deleteMeeting() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/meetings/{meetingId}" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/meetings/{meetingId}" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2011,7 +2042,7 @@ call_deleteServiceBody() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/servicebodies/{serviceBodyId}" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/servicebodies/{serviceBodyId}" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2047,7 +2078,7 @@ call_deleteUser() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/users/{userId}" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/users/{userId}" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2083,7 +2114,7 @@ call_getFormat() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/formats/{formatId}" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/formats/{formatId}" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2119,7 +2150,7 @@ call_getFormats() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/formats" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/formats" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2155,7 +2186,7 @@ call_getMeeting() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/meetings/{meetingId}" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/meetings/{meetingId}" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2191,7 +2222,79 @@ call_getMeetings() {
     local query_parameter_names=(meetingIds days serviceBodyIds searchString  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/meetings" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/meetings" path_parameter_names query_parameter_names); then
+        ERROR_MSG=$path
+        exit 1
+    fi
+    local method="GET"
+    local headers_curl
+    headers_curl=$(header_arguments_to_curl)
+    if [[ -n $header_accept ]]; then
+        headers_curl="${headers_curl} -H 'Accept: ${header_accept}'"
+    fi
+
+    local basic_auth_option=""
+    if [[ -n $basic_auth_credential ]]; then
+        basic_auth_option="-u ${basic_auth_credential}"
+    fi
+    if [[ "$print_curl" = true ]]; then
+        echo "curl -d '' ${basic_auth_option} ${curl_arguments} ${headers_curl} -X ${method} \"${host}${path}\""
+    else
+        eval "curl -d '' ${basic_auth_option} ${curl_arguments} ${headers_curl} -X ${method} \"${host}${path}\""
+    fi
+}
+
+##############################################################################
+#
+# Call getRootServer operation
+#
+##############################################################################
+call_getRootServer() {
+    # ignore error about 'path_parameter_names' being unused; passed by reference
+    # shellcheck disable=SC2034
+    local path_parameter_names=(rootServerId)
+    # ignore error about 'query_parameter_names' being unused; passed by reference
+    # shellcheck disable=SC2034
+    local query_parameter_names=()
+    local path
+
+    if ! path=$(build_request_path "/main_server/api/v1/rootservers/{rootServerId}" path_parameter_names query_parameter_names); then
+        ERROR_MSG=$path
+        exit 1
+    fi
+    local method="GET"
+    local headers_curl
+    headers_curl=$(header_arguments_to_curl)
+    if [[ -n $header_accept ]]; then
+        headers_curl="${headers_curl} -H 'Accept: ${header_accept}'"
+    fi
+
+    local basic_auth_option=""
+    if [[ -n $basic_auth_credential ]]; then
+        basic_auth_option="-u ${basic_auth_credential}"
+    fi
+    if [[ "$print_curl" = true ]]; then
+        echo "curl -d '' ${basic_auth_option} ${curl_arguments} ${headers_curl} -X ${method} \"${host}${path}\""
+    else
+        eval "curl -d '' ${basic_auth_option} ${curl_arguments} ${headers_curl} -X ${method} \"${host}${path}\""
+    fi
+}
+
+##############################################################################
+#
+# Call getRootServers operation
+#
+##############################################################################
+call_getRootServers() {
+    # ignore error about 'path_parameter_names' being unused; passed by reference
+    # shellcheck disable=SC2034
+    local path_parameter_names=()
+    # ignore error about 'query_parameter_names' being unused; passed by reference
+    # shellcheck disable=SC2034
+    local query_parameter_names=(  )
+    local path
+
+    if ! path=$(build_request_path "/main_server/api/v1/rootservers" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2227,7 +2330,7 @@ call_getServiceBodies() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/servicebodies" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/servicebodies" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2263,7 +2366,7 @@ call_getServiceBody() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/servicebodies/{serviceBodyId}" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/servicebodies/{serviceBodyId}" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2299,7 +2402,7 @@ call_getUser() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/users/{userId}" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/users/{userId}" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2335,7 +2438,7 @@ call_getUsers() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/users" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/users" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2371,7 +2474,7 @@ call_partialUpdateUser() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/users/{userId}" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/users/{userId}" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2449,7 +2552,7 @@ call_patchFormat() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/formats/{formatId}" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/formats/{formatId}" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2527,7 +2630,7 @@ call_patchMeeting() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/meetings/{meetingId}" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/meetings/{meetingId}" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2605,7 +2708,7 @@ call_patchServiceBody() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/servicebodies/{serviceBodyId}" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/servicebodies/{serviceBodyId}" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2683,7 +2786,7 @@ call_updateFormat() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/formats/{formatId}" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/formats/{formatId}" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2761,7 +2864,7 @@ call_updateMeeting() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/meetings/{meetingId}" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/meetings/{meetingId}" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2839,7 +2942,7 @@ call_updateServiceBody() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/servicebodies/{serviceBodyId}" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/servicebodies/{serviceBodyId}" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2917,7 +3020,7 @@ call_updateUser() {
     local query_parameter_names=(  )
     local path
 
-    if ! path=$(build_request_path "/api/v1/users/{userId}" path_parameter_names query_parameter_names); then
+    if ! path=$(build_request_path "/main_server/api/v1/users/{userId}" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -3126,6 +3229,12 @@ case $key in
     getMeetings)
     operation="getMeetings"
     ;;
+    getRootServer)
+    operation="getRootServer"
+    ;;
+    getRootServers)
+    operation="getRootServers"
+    ;;
     getServiceBodies)
     operation="getServiceBodies"
     ;;
@@ -3185,13 +3294,6 @@ case $key in
     # only after the operation argument
     if [[ "$operation" ]]; then
         IFS=':' read -r header_name header_value <<< "$key"
-        #
-        # If the header key is the same as the api_key expected by API in the
-        # header, override the ${apikey_auth_credential} variable
-        #
-        if [[ $header_name == "Authorization: Bearer" ]]; then
-            apikey_auth_credential=$header_value
-        fi
         header_arguments[$header_name]=$header_value
     else
         curl_arguments+=" $key"
@@ -3293,6 +3395,12 @@ case $operation in
     ;;
     getMeetings)
     call_getMeetings
+    ;;
+    getRootServer)
+    call_getRootServer
+    ;;
+    getRootServers)
+    call_getRootServers
     ;;
     getServiceBodies)
     call_getServiceBodies

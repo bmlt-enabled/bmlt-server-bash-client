@@ -84,6 +84,8 @@ _bmlt-cli()
     operations["getFormats"]=1
     operations["getMeeting"]=1
     operations["getMeetings"]=1
+    operations["getRootServer"]=1
+    operations["getRootServers"]=1
     operations["getServiceBodies"]=1
     operations["getServiceBody"]=1
     operations["getUser"]=1
@@ -116,6 +118,8 @@ _bmlt-cli()
     operation_parameters["getFormats"]=""
     operation_parameters["getMeeting"]="meetingId= "
     operation_parameters["getMeetings"]="meetingIds= days= serviceBodyIds= searchString= "
+    operation_parameters["getRootServer"]="rootServerId= "
+    operation_parameters["getRootServers"]=""
     operation_parameters["getServiceBodies"]=""
     operation_parameters["getServiceBody"]="serviceBodyId= "
     operation_parameters["getUser"]="userId= "
