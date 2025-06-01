@@ -8,6 +8,7 @@
 # ! openapi-generator (https://openapi-generator.tech)
 # ! FROM OPENAPI SPECIFICATION IN JSON.
 # !
+# ! Generator version: 7.14.0-SNAPSHOT
 # !
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -107,6 +108,7 @@ operation_parameters_minimum_occurrences["deleteServiceBody:::serviceBodyId"]=1
 operation_parameters_minimum_occurrences["deleteUser:::userId"]=1
 operation_parameters_minimum_occurrences["getFormat:::formatId"]=1
 operation_parameters_minimum_occurrences["getMeeting:::meetingId"]=1
+operation_parameters_minimum_occurrences["getMeetingChanges:::meetingId"]=1
 operation_parameters_minimum_occurrences["getMeetings:::meetingIds"]=0
 operation_parameters_minimum_occurrences["getMeetings:::days"]=0
 operation_parameters_minimum_occurrences["getMeetings:::serviceBodyIds"]=0
@@ -150,6 +152,7 @@ operation_parameters_maximum_occurrences["deleteServiceBody:::serviceBodyId"]=0
 operation_parameters_maximum_occurrences["deleteUser:::userId"]=0
 operation_parameters_maximum_occurrences["getFormat:::formatId"]=0
 operation_parameters_maximum_occurrences["getMeeting:::meetingId"]=0
+operation_parameters_maximum_occurrences["getMeetingChanges:::meetingId"]=0
 operation_parameters_maximum_occurrences["getMeetings:::meetingIds"]=0
 operation_parameters_maximum_occurrences["getMeetings:::days"]=0
 operation_parameters_maximum_occurrences["getMeetings:::serviceBodyIds"]=0
@@ -190,6 +193,7 @@ operation_parameters_collection_type["deleteServiceBody:::serviceBodyId"]=""
 operation_parameters_collection_type["deleteUser:::userId"]=""
 operation_parameters_collection_type["getFormat:::formatId"]=""
 operation_parameters_collection_type["getMeeting:::meetingId"]=""
+operation_parameters_collection_type["getMeetingChanges:::meetingId"]=""
 operation_parameters_collection_type["getMeetings:::meetingIds"]=""
 operation_parameters_collection_type["getMeetings:::days"]=""
 operation_parameters_collection_type["getMeetings:::serviceBodyIds"]=""
@@ -353,20 +357,24 @@ header_arguments_to_curl() {
 #
 ##############################################################################
 body_parameters_to_json() {
-    local body_json="-d '{"
-    local count=0
-    for key in "${!body_parameters[@]}"; do
-        if [[ $((count++)) -gt 0 ]]; then
-            body_json+=", "
-        fi
-        body_json+="\"${key}\": ${body_parameters[${key}]}"
-    done
-    body_json+="}'"
-
-    if [[ "${#body_parameters[@]}" -eq 0 ]]; then
-        echo ""
+    if [[ $RAW_BODY == "1" ]]; then
+        echo "-d '${body_parameters["RAW_BODY"]}'"
     else
-        echo "${body_json}"
+        local body_json="-d '{"
+        local count=0
+        for key in "${!body_parameters[@]}"; do
+            if [[ $((count++)) -gt 0 ]]; then
+                body_json+=", "
+            fi
+            body_json+="\"${key}\": ${body_parameters[${key}]}"
+        done
+        body_json+="}'"
+
+        if [[ "${#body_parameters[@]}" -eq 0 ]]; then
+            echo ""
+        else
+            echo "${body_json}"
+        fi
     fi
 }
 
@@ -618,10 +626,12 @@ read -r -d '' ops <<EOF
   ${CYAN}deleteUser${OFF};Deletes a user (AUTH)
   ${CYAN}getFormat${OFF};Retrieves a format (AUTH)
   ${CYAN}getFormats${OFF};Retrieves formats (AUTH)
+  ${CYAN}getLaravelLog${OFF};Retrieves laravel log (AUTH)
   ${CYAN}getMeeting${OFF};Retrieves a meeting (AUTH)
+  ${CYAN}getMeetingChanges${OFF};Retrieve changes for a meeting (AUTH)
   ${CYAN}getMeetings${OFF};Retrieves meetings (AUTH)
   ${CYAN}getRootServer${OFF};Retrieves a root server
-  ${CYAN}getRootServers${OFF};Retrieves root servers (AUTH)
+  ${CYAN}getRootServers${OFF};Retrieves root servers
   ${CYAN}getServiceBodies${OFF};Retrieves service bodies (AUTH)
   ${CYAN}getServiceBody${OFF};Retrieves a service body (AUTH)
   ${CYAN}getUser${OFF};Retrieves a single user (AUTH)
@@ -743,6 +753,8 @@ print_authToken_help() {
     echo -e "${result_color_table[${code:0:1}]}  200;Returns when POST is successful.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
     code=401
     echo -e "${result_color_table[${code:0:1}]}  401;Returns when credentials are incorrect.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
+    code=403
+    echo -e "${result_color_table[${code:0:1}]}  403;Returns when unauthorized.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
     code=422
     echo -e "${result_color_table[${code:0:1}]}  422;Validation error.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
 }
@@ -902,6 +914,8 @@ print_deleteFormat_help() {
     echo -e "${result_color_table[${code:0:1}]}  403;Returns when unauthorized${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
     code=404
     echo -e "${result_color_table[${code:0:1}]}  404;Returns when no format exists.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
+    code=409
+    echo -e "${result_color_table[${code:0:1}]}  409;Returns when format has meetings assigned.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
     code=422
     echo -e "${result_color_table[${code:0:1}]}  422;Validation error.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
 }
@@ -978,8 +992,8 @@ print_deleteUser_help() {
     echo -e "${result_color_table[${code:0:1}]}  403;Returns when unauthorized${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
     code=404
     echo -e "${result_color_table[${code:0:1}]}  404;Returns when no user exists.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
-    code=422
-    echo -e "${result_color_table[${code:0:1}]}  422;Validation error.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
+    code=409
+    echo -e "${result_color_table[${code:0:1}]}  409;Returns when user is still referenced by service bodies.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
 }
 ##############################################################################
 #
@@ -1023,6 +1037,28 @@ print_getFormats_help() {
 }
 ##############################################################################
 #
+# Print help for getLaravelLog operation
+#
+##############################################################################
+print_getLaravelLog_help() {
+    echo ""
+    echo -e "${BOLD}${WHITE}getLaravelLog - Retrieves laravel log${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e ""
+    echo -e "Retrieve the laravel log if it exists." | paste -sd' ' | fold -sw 80
+    echo -e ""
+    echo ""
+    echo -e "${BOLD}${WHITE}Responses${OFF}"
+    code=200
+    echo -e "${result_color_table[${code:0:1}]}  200;Returns when user is authenticated.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
+    code=401
+    echo -e "${result_color_table[${code:0:1}]}  401;Returns when user is not authenticated.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
+    code=403
+    echo -e "${result_color_table[${code:0:1}]}  403;Returns when user is unauthorized to perform action.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
+    code=404
+    echo -e "${result_color_table[${code:0:1}]}  404;Returns when no laravel log file exists.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
+}
+##############################################################################
+#
 # Print help for getMeeting operation
 #
 ##############################################################################
@@ -1042,6 +1078,30 @@ print_getMeeting_help() {
     echo -e "${result_color_table[${code:0:1}]}  401;Returns when user is not authenticated.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
     code=404
     echo -e "${result_color_table[${code:0:1}]}  404;Returns when no meeting exists.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
+}
+##############################################################################
+#
+# Print help for getMeetingChanges operation
+#
+##############################################################################
+print_getMeetingChanges_help() {
+    echo ""
+    echo -e "${BOLD}${WHITE}getMeetingChanges - Retrieve changes for a meeting${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e ""
+    echo -e "Retrieve all changes made to a specific meeting." | paste -sd' ' | fold -sw 80
+    echo -e ""
+    echo -e "${BOLD}${WHITE}Parameters${OFF}"
+    echo -e "  * ${GREEN}meetingId${OFF} ${BLUE}[integer]${OFF} ${RED}(required)${OFF} ${CYAN}(default: null)${OFF} - ID of the meeting ${YELLOW}Specify as: meetingId=value${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo ""
+    echo -e "${BOLD}${WHITE}Responses${OFF}"
+    code=200
+    echo -e "${result_color_table[${code:0:1}]}  200;List of changes for the meeting.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
+    code=401
+    echo -e "${result_color_table[${code:0:1}]}  401;Unauthorized.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
+    code=403
+    echo -e "${result_color_table[${code:0:1}]}  403;Returns when unauthorized${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
+    code=404
+    echo -e "${result_color_table[${code:0:1}]}  404;Meeting not found.${OFF}" | paste -sd' ' | column -t -s ';' | fold -sw 80 | sed '2,$s/^/       /'
 }
 ##############################################################################
 #
@@ -1099,7 +1159,7 @@ print_getRootServer_help() {
 ##############################################################################
 print_getRootServers_help() {
     echo ""
-    echo -e "${BOLD}${WHITE}getRootServers - Retrieves root servers${OFF}${BLUE}(AUTH - OAuth2)${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
+    echo -e "${BOLD}${WHITE}getRootServers - Retrieves root servers${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo -e "Retrieve root servers." | paste -sd' ' | fold -sw 80
     echo -e ""
@@ -2174,6 +2234,42 @@ call_getFormats() {
 
 ##############################################################################
 #
+# Call getLaravelLog operation
+#
+##############################################################################
+call_getLaravelLog() {
+    # ignore error about 'path_parameter_names' being unused; passed by reference
+    # shellcheck disable=SC2034
+    local path_parameter_names=()
+    # ignore error about 'query_parameter_names' being unused; passed by reference
+    # shellcheck disable=SC2034
+    local query_parameter_names=(  )
+    local path
+
+    if ! path=$(build_request_path "/main_server/api/v1/logs/laravel" path_parameter_names query_parameter_names); then
+        ERROR_MSG=$path
+        exit 1
+    fi
+    local method="GET"
+    local headers_curl
+    headers_curl=$(header_arguments_to_curl)
+    if [[ -n $header_accept ]]; then
+        headers_curl="${headers_curl} -H 'Accept: ${header_accept}'"
+    fi
+
+    local basic_auth_option=""
+    if [[ -n $basic_auth_credential ]]; then
+        basic_auth_option="-u ${basic_auth_credential}"
+    fi
+    if [[ "$print_curl" = true ]]; then
+        echo "curl -d '' ${basic_auth_option} ${curl_arguments} ${headers_curl} -X ${method} \"${host}${path}\""
+    else
+        eval "curl -d '' ${basic_auth_option} ${curl_arguments} ${headers_curl} -X ${method} \"${host}${path}\""
+    fi
+}
+
+##############################################################################
+#
 # Call getMeeting operation
 #
 ##############################################################################
@@ -2187,6 +2283,42 @@ call_getMeeting() {
     local path
 
     if ! path=$(build_request_path "/main_server/api/v1/meetings/{meetingId}" path_parameter_names query_parameter_names); then
+        ERROR_MSG=$path
+        exit 1
+    fi
+    local method="GET"
+    local headers_curl
+    headers_curl=$(header_arguments_to_curl)
+    if [[ -n $header_accept ]]; then
+        headers_curl="${headers_curl} -H 'Accept: ${header_accept}'"
+    fi
+
+    local basic_auth_option=""
+    if [[ -n $basic_auth_credential ]]; then
+        basic_auth_option="-u ${basic_auth_credential}"
+    fi
+    if [[ "$print_curl" = true ]]; then
+        echo "curl -d '' ${basic_auth_option} ${curl_arguments} ${headers_curl} -X ${method} \"${host}${path}\""
+    else
+        eval "curl -d '' ${basic_auth_option} ${curl_arguments} ${headers_curl} -X ${method} \"${host}${path}\""
+    fi
+}
+
+##############################################################################
+#
+# Call getMeetingChanges operation
+#
+##############################################################################
+call_getMeetingChanges() {
+    # ignore error about 'path_parameter_names' being unused; passed by reference
+    # shellcheck disable=SC2034
+    local path_parameter_names=(meetingId)
+    # ignore error about 'query_parameter_names' being unused; passed by reference
+    # shellcheck disable=SC2034
+    local query_parameter_names=(  )
+    local path
+
+    if ! path=$(build_request_path "/main_server/api/v1/meetings/{meetingId}/changes" path_parameter_names query_parameter_names); then
         ERROR_MSG=$path
         exit 1
     fi
@@ -2291,7 +2423,7 @@ call_getRootServers() {
     local path_parameter_names=()
     # ignore error about 'query_parameter_names' being unused; passed by reference
     # shellcheck disable=SC2034
-    local query_parameter_names=(  )
+    local query_parameter_names=()
     local path
 
     if ! path=$(build_request_path "/main_server/api/v1/rootservers" path_parameter_names query_parameter_names); then
@@ -3223,8 +3355,14 @@ case $key in
     getFormats)
     operation="getFormats"
     ;;
+    getLaravelLog)
+    operation="getLaravelLog"
+    ;;
     getMeeting)
     operation="getMeeting"
+    ;;
+    getMeetingChanges)
+    operation="getMeetingChanges"
     ;;
     getMeetings)
     operation="getMeetings"
@@ -3277,6 +3415,16 @@ case $key in
     if [[ "$operation" ]]; then
         IFS='==' read -r body_key sep body_value <<< "$key"
         body_parameters[${body_key}]="\"${body_value}\""
+    fi
+    ;;
+    --body=*)
+    # Parse value of body as argument and convert it into only
+    # the raw body content
+    if [[ "$operation" ]]; then
+        IFS='--body=' read -r body_value <<< "$key"
+        body_value=${body_value##--body=}
+        body_parameters["RAW_BODY"]="${body_value}"
+        RAW_BODY=1
     fi
     ;;
     *:=*)
@@ -3390,8 +3538,14 @@ case $operation in
     getFormats)
     call_getFormats
     ;;
+    getLaravelLog)
+    call_getLaravelLog
+    ;;
     getMeeting)
     call_getMeeting
+    ;;
+    getMeetingChanges)
+    call_getMeetingChanges
     ;;
     getMeetings)
     call_getMeetings

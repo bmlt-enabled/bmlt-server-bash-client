@@ -37,8 +37,9 @@ Name | Type | Description | Notes
 **contactUnderscoreemailUnderscore1** | **string** |  | [optional] [default to null]
 **contactUnderscoreemailUnderscore2** | **string** |  | [optional] [default to null]
 **busUnderscorelines** | **string** |  | [optional] [default to null]
-**trainUnderscoreline** | **string** |  | [optional] [default to null]
+**trainUnderscorelines** | **string** |  | [optional] [default to null]
 **comments** | **string** |  | [optional] [default to null]
+**customFields** | **map[String, string]** |  | [optional] [default to null]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

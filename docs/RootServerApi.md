@@ -18,7 +18,9 @@ Method | HTTP request | Description
 [**deleteUser**](RootServerApi.md#deleteUser) | **DELETE** /api/v1/users/{userId} | Deletes a user
 [**getFormat**](RootServerApi.md#getFormat) | **GET** /api/v1/formats/{formatId} | Retrieves a format
 [**getFormats**](RootServerApi.md#getFormats) | **GET** /api/v1/formats | Retrieves formats
+[**getLaravelLog**](RootServerApi.md#getLaravelLog) | **GET** /api/v1/logs/laravel | Retrieves laravel log
 [**getMeeting**](RootServerApi.md#getMeeting) | **GET** /api/v1/meetings/{meetingId} | Retrieves a meeting
+[**getMeetingChanges**](RootServerApi.md#getMeetingChanges) | **GET** /api/v1/meetings/{meetingId}/changes | Retrieve changes for a meeting
 [**getMeetings**](RootServerApi.md#getMeetings) | **GET** /api/v1/meetings | Retrieves meetings
 [**getRootServer**](RootServerApi.md#getRootServer) | **GET** /api/v1/rootservers/{rootServerId} | Retrieves a root server
 [**getRootServers**](RootServerApi.md#getRootServers) | **GET** /api/v1/rootservers | Retrieves root servers
@@ -518,6 +520,38 @@ This endpoint does not need any parameter.
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 
+## getLaravelLog
+
+Retrieves laravel log
+
+Retrieve the laravel log if it exists.
+
+### Example
+
+```bash
+bmlt-cli getLaravelLog
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+**binary**
+
+### Authorization
+
+[bmltToken](../README.md#bmltToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not Applicable
+- **Accept**: application/gzip, application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
 ## getMeeting
 
 Retrieves a meeting
@@ -540,6 +574,41 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**Meeting**](Meeting.md)
+
+### Authorization
+
+[bmltToken](../README.md#bmltToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not Applicable
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
+## getMeetingChanges
+
+Retrieve changes for a meeting
+
+Retrieve all changes made to a specific meeting.
+
+### Example
+
+```bash
+bmlt-cli getMeetingChanges meetingId=value
+```
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **meetingId** | **integer** | ID of the meeting | [default to null]
+
+### Return type
+
+[**array[MeetingChangeResource]**](MeetingChangeResource.md)
 
 ### Authorization
 
@@ -648,7 +717,7 @@ This endpoint does not need any parameter.
 
 ### Authorization
 
-[bmltToken](../README.md#bmltToken)
+No authorization required
 
 ### HTTP request headers
 

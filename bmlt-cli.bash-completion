@@ -8,6 +8,7 @@
 # ! openapi-generator (https://openapi-generator.tech)
 # ! FROM OPENAPI SPECIFICATION IN JSON.
 # !
+# ! Generator version: 7.14.0-SNAPSHOT
 # !
 # !
 # ! System wide installation:
@@ -82,7 +83,9 @@ _bmlt-cli()
     operations["deleteUser"]=1
     operations["getFormat"]=1
     operations["getFormats"]=1
+    operations["getLaravelLog"]=1
     operations["getMeeting"]=1
+    operations["getMeetingChanges"]=1
     operations["getMeetings"]=1
     operations["getRootServer"]=1
     operations["getRootServers"]=1
@@ -116,7 +119,9 @@ _bmlt-cli()
     operation_parameters["deleteUser"]="userId= "
     operation_parameters["getFormat"]="formatId= "
     operation_parameters["getFormats"]=""
+    operation_parameters["getLaravelLog"]=""
     operation_parameters["getMeeting"]="meetingId= "
+    operation_parameters["getMeetingChanges"]="meetingId= "
     operation_parameters["getMeetings"]="meetingIds= days= serviceBodyIds= searchString= "
     operation_parameters["getRootServer"]="rootServerId= "
     operation_parameters["getRootServers"]=""

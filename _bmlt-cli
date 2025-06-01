@@ -10,6 +10,7 @@
 # !
 # ! Based on: https://github.com/Valodim/zsh-curl-completion/blob/master/_curl
 # !
+# ! Generator version: 7.14.0-SNAPSHOT
 # !
 # !
 # ! Installation:
@@ -310,7 +311,9 @@ case $state in
             "deleteUser[Deletes a user]" \
             "getFormat[Retrieves a format]" \
             "getFormats[Retrieves formats]" \
+            "getLaravelLog[Retrieves laravel log]" \
             "getMeeting[Retrieves a meeting]" \
+            "getMeetingChanges[Retrieve changes for a meeting]" \
             "getMeetings[Retrieves meetings]" \
             "getRootServer[Retrieves a root server]" \
             "getRootServers[Retrieves root servers]" \
@@ -422,10 +425,23 @@ case $state in
                               )
         _describe -t actions 'operations' _op_arguments -S '' && ret=0
         ;;
+      getLaravelLog)
+        local -a _op_arguments
+        _op_arguments=(
+                              )
+        _describe -t actions 'operations' _op_arguments -S '' && ret=0
+        ;;
       getMeeting)
         local -a _op_arguments
         _op_arguments=(
           "meetingId=:[PATH] ID of meeting"
+                    )
+        _describe -t actions 'operations' _op_arguments -S '' && ret=0
+        ;;
+      getMeetingChanges)
+        local -a _op_arguments
+        _op_arguments=(
+          "meetingId=:[PATH] ID of the meeting"
                     )
         _describe -t actions 'operations' _op_arguments -S '' && ret=0
         ;;

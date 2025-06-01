@@ -117,7 +117,9 @@ Class | Method | HTTP request | Description
 *RootServerApi* | [**deleteUser**](docs/RootServerApi.md#deleteuser) | **DELETE** /api/v1/users/{userId} | Deletes a user
 *RootServerApi* | [**getFormat**](docs/RootServerApi.md#getformat) | **GET** /api/v1/formats/{formatId} | Retrieves a format
 *RootServerApi* | [**getFormats**](docs/RootServerApi.md#getformats) | **GET** /api/v1/formats | Retrieves formats
+*RootServerApi* | [**getLaravelLog**](docs/RootServerApi.md#getlaravellog) | **GET** /api/v1/logs/laravel | Retrieves laravel log
 *RootServerApi* | [**getMeeting**](docs/RootServerApi.md#getmeeting) | **GET** /api/v1/meetings/{meetingId} | Retrieves a meeting
+*RootServerApi* | [**getMeetingChanges**](docs/RootServerApi.md#getmeetingchanges) | **GET** /api/v1/meetings/{meetingId}/changes | Retrieve changes for a meeting
 *RootServerApi* | [**getMeetings**](docs/RootServerApi.md#getmeetings) | **GET** /api/v1/meetings | Retrieves meetings
 *RootServerApi* | [**getRootServer**](docs/RootServerApi.md#getrootserver) | **GET** /api/v1/rootservers/{rootServerId} | Retrieves a root server
 *RootServerApi* | [**getRootServers**](docs/RootServerApi.md#getrootservers) | **GET** /api/v1/rootservers | Retrieves root servers
@@ -149,6 +151,7 @@ Class | Method | HTTP request | Description
  - [FormatUpdate](docs/FormatUpdate.md)
  - [Meeting](docs/Meeting.md)
  - [MeetingBase](docs/MeetingBase.md)
+ - [MeetingChangeResource](docs/MeetingChangeResource.md)
  - [MeetingCreate](docs/MeetingCreate.md)
  - [MeetingPartialUpdate](docs/MeetingPartialUpdate.md)
  - [MeetingUpdate](docs/MeetingUpdate.md)
